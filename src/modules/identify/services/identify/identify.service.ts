@@ -1,15 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ContactService } from '../contact/contact.service';
-import { IdentifyRequestDto, IdentifyResponseDto } from '../../dto/identify.dto';
 import {
-  CreateContact,
-  UpdateContact,
-} from '../../types/types';
+  IdentifyRequestDto,
+  IdentifyResponseDto,
+} from '../../dto/identify.dto';
+import { CreateContact, UpdateContact } from '../../types/types';
 import { Contact } from '../../entities/contact.entity';
 @Injectable()
 export class IdentifyService {
   constructor(private readonly contactService: ContactService) {}
-
 
   /**
    * Fetches the secondary contacts based on the provided primary contact.
@@ -57,7 +56,6 @@ export class IdentifyService {
     return result;
   }
 
-
   /**
    * Formats the identify response based on the provided contact.
    * If the contact has a secondary link precedence, it retrieves the contact by its linked ID.
@@ -93,43 +91,42 @@ export class IdentifyService {
     return this.fetchIdentifyResponse(data);
   }
 
+  /**
+   * Identifies a contact based on the provided phone number and email.
+   *
+   * @param {IdentifyRequestDto} identifyDto - The request DTO containing the phone number and email.
+   * @return {Promise<Contact>} A promise that resolves to the identified contact.
+   * @throws {Error} If the identify request is invalid.
+   */
+  async identify(identifyDto: IdentifyRequestDto): Promise<Contact> {
+    const { phoneNumber, email } = identifyDto;
 
-/**
- * Identifies a contact based on the provided phone number and email.
- *
- * @param {IdentifyRequestDto} identifyDto - The request DTO containing the phone number and email.
- * @return {Promise<Contact>} A promise that resolves to the identified contact.
- * @throws {Error} If the identify request is invalid.
- */
-async identify(identifyDto: IdentifyRequestDto): Promise<Contact> {
-  const { phoneNumber, email } = identifyDto;
+    if (!phoneNumber && !email) {
+      throw new Error('Invalid identify request');
+    }
 
-  if (!phoneNumber && !email) {
-    throw new Error('Invalid identify request');
+    const existingContact = await this.getExistingContact(phoneNumber, email);
+    if (existingContact) {
+      return existingContact;
+    }
+
+    const contactsByPhoneNumber =
+      await this.contactService.getContactsByPhoneNumber(phoneNumber);
+    const contactsByEmail = await this.contactService.getContactsByEmail(email);
+
+    if (contactsByPhoneNumber.length && contactsByEmail.length) {
+      return this.updateContacts(contactsByPhoneNumber, contactsByEmail);
+    } else if (contactsByPhoneNumber.length) {
+      return this.createContactWithPhoneNumber(contactsByPhoneNumber, email);
+    } else if (contactsByEmail.length) {
+      return this.createContactWithEmail(contactsByEmail, phoneNumber);
+    }
+
+    return this.createNewContact({
+      phoneNumber,
+      email,
+    });
   }
-
-  const existingContact = await this.getExistingContact(phoneNumber, email);
-  if (existingContact) {
-    return existingContact;
-  }
-
-  const contactsByPhoneNumber = await this.contactService.getContactsByPhoneNumber(phoneNumber);
-  const contactsByEmail = await this.contactService.getContactsByEmail(email);
-
-  if (contactsByPhoneNumber.length && contactsByEmail.length) {
-    return this.updateContacts(contactsByPhoneNumber, contactsByEmail);
-  } else if (contactsByPhoneNumber.length) {
-    return this.createContactWithPhoneNumber(contactsByPhoneNumber, email);
-  } else if (contactsByEmail.length) {
-    return this.createContactWithEmail(contactsByEmail, phoneNumber);
-  }
-
-  return this.createNewContact({
-    phoneNumber,
-    email,
-  })
-}
-
 
   /**
    * Retrieves an existing contact based on the provided phone number and email.
@@ -161,7 +158,10 @@ async identify(identifyDto: IdentifyRequestDto): Promise<Contact> {
     dataWithPhoneNumber: Contact[],
     dataWithEmail: Contact[],
   ): Promise<Contact> {
-    const linkedId = dataWithEmail[0].linkPrecedence === 'secondary' ? dataWithEmail[0].linkedId : dataWithEmail[0].id;
+    const linkedId =
+      dataWithEmail[0].linkPrecedence === 'secondary'
+        ? dataWithEmail[0].linkedId
+        : dataWithEmail[0].id;
     const updatedContact: UpdateContact = {
       id: dataWithPhoneNumber[0].id,
       linkPrecedence: 'secondary',
@@ -181,7 +181,10 @@ async identify(identifyDto: IdentifyRequestDto): Promise<Contact> {
     dataWithPhoneNumber: Contact[],
     email: string,
   ): Promise<Contact> {
-    const linkedId = dataWithPhoneNumber[0].linkPrecedence === 'secondary' ? dataWithPhoneNumber[0].linkedId : dataWithPhoneNumber[0].id;
+    const linkedId =
+      dataWithPhoneNumber[0].linkPrecedence === 'secondary'
+        ? dataWithPhoneNumber[0].linkedId
+        : dataWithPhoneNumber[0].id;
     const insertedContact: CreateContact = {
       email,
       phoneNumber: dataWithPhoneNumber[0].phoneNumber,
@@ -202,7 +205,10 @@ async identify(identifyDto: IdentifyRequestDto): Promise<Contact> {
     dataWithEmail: Contact[],
     phoneNumber: string,
   ): Promise<Contact> {
-    const linkedId = dataWithEmail[0].linkPrecedence === 'secondary' ? dataWithEmail[0].linkedId : dataWithEmail[0].id;
+    const linkedId =
+      dataWithEmail[0].linkPrecedence === 'secondary'
+        ? dataWithEmail[0].linkedId
+        : dataWithEmail[0].id;
     const insertedContact: CreateContact = {
       email: dataWithEmail[0].email,
       phoneNumber,
@@ -212,23 +218,21 @@ async identify(identifyDto: IdentifyRequestDto): Promise<Contact> {
     return this.contactService.createContact(insertedContact);
   }
 
-
-/**
- * Creates a new contact with the provided phone number and email.
- *
- * @param {Object} options - The options for creating a new contact.
- * @param {string} [options.phoneNumber] - The phone number of the contact.
- * @param {string} [options.email] - The email of the contact.
- * @return {Promise<Contact>} A Promise that resolves to the newly created Contact object.
- */
+  /**
+   * Creates a new contact with the provided phone number and email.
+   *
+   * @param {Object} options - The options for creating a new contact.
+   * @param {string} [options.phoneNumber] - The phone number of the contact.
+   * @param {string} [options.email] - The email of the contact.
+   * @return {Promise<Contact>} A Promise that resolves to the newly created Contact object.
+   */
   private async createNewContact({
     phoneNumber,
     email,
   }: {
     phoneNumber?: string;
     email?: string;
-  }
-  ): Promise<Contact> {
+  }): Promise<Contact> {
     const insertedContact: CreateContact = {
       email,
       phoneNumber,

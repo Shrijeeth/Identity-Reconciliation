@@ -69,7 +69,7 @@ export class ContactService {
    * @return {Promise<Contact>} A promise that resolves to the updated contact.
    */
   async updateContactById(contact: UpdateContact): Promise<Contact> {
-    const data = await this.contactRepository.update(contact, {
+    await this.contactRepository.update(contact, {
       where: { id: contact.id },
       returning: true,
     });
