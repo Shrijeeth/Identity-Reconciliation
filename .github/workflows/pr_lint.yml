@@ -1,21 +1,26 @@
-name: Unit Test
+name: Lint Check
 
 on:
   pull_request:
     branches: [master]
 
 jobs:
-     run_unit_tests:
-          runs-on: ubuntu-latest
+  run_unit_tests:
+    runs-on: ubuntu-latest
 
-          steps:
-               - name: Checkout Repository
-                 uses: actions/checkout@v2
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-               - name: Install dependencies
-                 run: |
-                   npm install
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
 
-               - name: Run linter
-                 run: |
-                   eslint \"{src,apps,libs,test}/**/*.ts\"
+      - name: Install dependencies
+        run: |
+          npm install
+
+      - name: Run linter
+        run: |
+          eslint \"{src,apps,libs,test}/**/*.ts\"
