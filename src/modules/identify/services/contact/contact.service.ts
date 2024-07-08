@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Contact } from '../../entities/contact.entity';
-import { CONTACT_REPOSITORY } from '../../utils/constants';
-import { CreateContact, UpdateContact } from '../../utils/types';
+import { CONTACT_REPOSITORY } from '../../types/constants';
+import { CreateContact, UpdateContact } from '../../types/types';
 
 @Injectable()
 export class ContactService {
@@ -25,7 +25,7 @@ export class ContactService {
     phoneNumber: string;
     email: string;
   }): Promise<Array<Contact>> {
-    return await this.contactRepository.findAll({
+    return this.contactRepository.findAll({
       where: { phoneNumber, email },
     });
   }
@@ -37,7 +37,7 @@ export class ContactService {
    * @return {Promise<Contact[]>} A promise that resolves to an array of contacts.
    */
   async getContactsByPhoneNumber(phoneNumber: string): Promise<Contact[]> {
-    return await this.contactRepository.findAll({ where: { phoneNumber } });
+    return this.contactRepository.findAll({ where: { phoneNumber } });
   }
 
   /**
@@ -47,7 +47,7 @@ export class ContactService {
    * @return {Promise<Contact[]>} A promise that resolves to an array of contacts.
    */
   async getContactsByEmail(email: string): Promise<Contact[]> {
-    return await this.contactRepository.findAll({ where: { email } });
+    return this.contactRepository.findAll({ where: { email } });
   }
 
   /**
@@ -57,7 +57,7 @@ export class ContactService {
    * @return {Promise<Contact>} A promise that resolves to the newly created contact.
    */
   async createContact(contact: CreateContact): Promise<Contact> {
-    return await this.contactRepository.create(contact, {
+    return this.contactRepository.create(contact, {
       returning: true,
     });
   }
@@ -73,7 +73,7 @@ export class ContactService {
       where: { id: contact.id },
       returning: true,
     });
-    return data[1][0];
+    return this.contactRepository.findByPk(contact.id);
   }
 
   /**
@@ -83,7 +83,7 @@ export class ContactService {
    * @return {Promise<Contact[]>} A promise that resolves to an array of secondary contacts.
    */
   async getSecondaryContacts(primaryContactId: number): Promise<Contact[]> {
-    return await this.contactRepository.findAll({
+    return this.contactRepository.findAll({
       where: { linkPrecedence: 'secondary', linkedId: primaryContactId },
     });
   }
@@ -95,6 +95,6 @@ export class ContactService {
    * @return {Promise<Contact | null>} A promise that resolves to the contact with the specified ID, or null if not found.
    */
   async getContactById(contactId: number): Promise<Contact | null> {
-    return await this.contactRepository.findByPk(contactId);
+    return this.contactRepository.findByPk(contactId);
   }
 }
