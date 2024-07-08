@@ -2,7 +2,7 @@ name: Lint Check
 
 on:
   pull_request:
-    branches: [master]
+    branches: [main]
 
 jobs:
   run_unit_tests:
