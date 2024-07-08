@@ -3,6 +3,8 @@ name: Unit Test Workflow
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
 
 jobs:
   run_unit_tests:
