@@ -23,4 +23,4 @@ jobs:
 
       - name: Run linter
         run: |
-          eslint \"{src,apps,libs,test}/**/*.ts\"
+          npm run lint
