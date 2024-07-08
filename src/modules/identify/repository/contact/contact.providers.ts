@@ -1,4 +1,4 @@
-import { CONTACT_REPOSITORY } from '../../constants';
+import { CONTACT_REPOSITORY } from '../../utils/constants';
 import { Contact } from '../../entities/contact.entity';
 
 export const contactProviders = [

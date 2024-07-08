@@ -9,7 +9,7 @@ import {
   DeletedAt,
 } from 'sequelize-typescript';
 
-@Table
+@Table({ tableName: 'contacts' })
 export class Contact extends Model<Contact> {
   @Column({
     type: DataType.INTEGER,
@@ -19,6 +19,7 @@ export class Contact extends Model<Contact> {
   id: number;
 
   @Column({
+    field: 'phone_number',
     type: DataType.STRING,
     allowNull: true,
   })
@@ -32,12 +33,14 @@ export class Contact extends Model<Contact> {
 
   @ForeignKey(() => Contact)
   @Column({
+    field: 'linked_id',
     type: DataType.INTEGER,
     allowNull: true,
   })
   linkedId?: number;
 
   @Column({
+    field: 'link_precedence',
     type: DataType.ENUM('primary', 'secondary'),
     allowNull: false,
   })
@@ -45,6 +48,7 @@ export class Contact extends Model<Contact> {
 
   @CreatedAt
   @Column({
+    field: 'created_at',
     type: DataType.DATE,
     defaultValue: DataType.NOW,
   })
@@ -52,6 +56,7 @@ export class Contact extends Model<Contact> {
 
   @UpdatedAt
   @Column({
+    field: 'updated_at',
     type: DataType.DATE,
     defaultValue: DataType.NOW,
   })
@@ -59,8 +64,9 @@ export class Contact extends Model<Contact> {
 
   @DeletedAt
   @Column({
+    field: 'deleted_at',
     type: DataType.DATE,
     allowNull: true,
   })
-  deletedAt?: Date;
+  deletedAt: Date;
 }
